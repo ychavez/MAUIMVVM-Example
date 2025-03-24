@@ -11,32 +11,60 @@ namespace MiToDoListApp.Mobile.ViewModels
 {
     public abstract class BaseViewModel : INotifyPropertyChanged, INotifyDataErrorInfo
     {
-        protected readonly Dictionary<string, List<string>> _errors = new();
+        private bool _isBusy;
+        public Dictionary<string, List<string>> Errors { get; } = new();
 
-        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
         public event PropertyChangedEventHandler? PropertyChanged;
+        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        // Propiedad IsBusy para estados de carga
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set => SetProperty(ref _isBusy, value);
+        }
+
+        // Implementación de INotifyDataErrorInfo
+        public bool HasErrors => Errors.Any();
+
+        public IEnumerable GetErrors(string? propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+                return Errors.SelectMany(e => e.Value);
+
+            return Errors.TryGetValue(propertyName, out var errors)
+                ? errors
+                : Enumerable.Empty<string>();
+        }
+
+        // Método para actualizar propiedades y notificar cambios
+        protected bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName] string propertyName = "")
+        {
+            if (EqualityComparer<T>.Default.Equals(backingStore, value))
+                return false;
+
+            backingStore = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        // Notificar cambios en propiedades
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        // Notificar cambios en los errores de una propiedad
         protected void OnErrorsChanged(string propertyName)
         {
             ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
         }
 
-        public IEnumerable GetErrors(string? propertyName)
+        // Limpiar todos los errores
+        protected void ClearAllErrors()
         {
-            if (string.IsNullOrEmpty(propertyName) || !_errors.ContainsKey(propertyName))
-                return Enumerable.Empty<string>();
-
-            return _errors[propertyName];
+            Errors.Clear();
+            OnErrorsChanged(string.Empty); // Notificar que todos los errores cambiaron
         }
-
-        public bool HasErrors => _errors.Any();
-
-        // Propiedad pública para acceder a los errores desde afuera
-        public IReadOnlyDictionary<string, List<string>> Errors => _errors;
     }
 }

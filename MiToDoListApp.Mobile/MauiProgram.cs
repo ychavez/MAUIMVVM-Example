@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using MiToDoListApp.Applicationx.Behaviors;
 using MiToDoListApp.Applicationx.Services.Abstractions;
 using MiToDoListApp.Mobile.Services;
+using MiToDoListApp.Mobile.ViewModels;
 
 namespace MiToDoListApp.Mobile
 {
@@ -24,7 +25,8 @@ namespace MiToDoListApp.Mobile
                 cfg.RegisterServicesFromAssembly(typeof(MauiApp).Assembly);
                 cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             });
-
+            builder.Services
+              .AddTransient<TaskListViewModel>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
