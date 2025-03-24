@@ -14,6 +14,7 @@ namespace MiToDoListApp.Mobile
         }
 
         private void OnCounterClicked(object sender, EventArgs e)
+        
         {
             count++;
 

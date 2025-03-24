@@ -27,6 +27,8 @@ namespace MiToDoListApp.Mobile
             });
             builder.Services
               .AddTransient<TaskListViewModel>();
+            builder.Services
+              .AddTransient<AddTodoPage>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

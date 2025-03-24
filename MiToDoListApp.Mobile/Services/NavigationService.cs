@@ -5,25 +5,40 @@ namespace MiToDoListApp.Mobile.Services
 {
     public class NavigationService : INavigationService
     {
-        private readonly INavigation _navigation;
+    
 
-        public NavigationService()
+        private readonly IServiceProvider _serviceProvider;
+
+        public NavigationService(IServiceProvider serviceProvider)
         {
-
-            _navigation = Application.Current.Windows[0].Page.Navigation;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task NavigateToAsync(Type pageType)
         {
-            if (typeof(Page).IsAssignableFrom(pageType))
+            try
             {
-                var page = Activator.CreateInstance(pageType) as Page;
-                await _navigation.PushAsync(page);
+                if (!typeof(Page).IsAssignableFrom(pageType))
+                    throw new ArgumentException("El tipo debe ser una Page de MAUI");
+
+                // Resuelve la Page desde el contenedor de DI
+                var page = _serviceProvider.GetService(pageType) as Page;
+
+                if (page != null)
+                {
+                    // Usa la navegación de Shell
+                    await Shell.Current.Navigation.PushAsync(page);
+                }
+            }
+            catch (Exception ex)
+            {
+             //   Debug.WriteLine($"Error de navegación: {ex.Message}");
+                throw;
             }
         }
         public async Task GoBackAsync()
         {
-            await _navigation.PopAsync();
+            await Shell.Current.Navigation.PopAsync();
         }
     }
 }
